@@ -4,6 +4,7 @@ let config = null;
 let timerInterval = null;
 let startTime = null;
 let loraUrls = [];
+let activePreset = "txt2img";
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -81,12 +82,20 @@ function renderWorkflowFields(fields) {
 }
 
 // Load a preset workflow
-async function loadPreset(presetName) {
+async function loadPreset() {
   try {
     message("Loading preset...");
-    const url = presetName === "txt2img"
-      ? "/samples/flux1-dev-text-to-image-api.json"
-      : "/samples/flux1-dev-image-to-image-api.json";
+    const model = $("#base-model-select").value;
+    let url = "";
+    if (model === "flux2") {
+      url = activePreset === "txt2img"
+        ? "/samples/flux2-klein-9b-text-to-image-api.json"
+        : "/samples/flux2-klein-9b-image-to-image-api.json";
+    } else {
+      url = activePreset === "txt2img"
+        ? "/samples/flux1-dev-text-to-image-api.json"
+        : "/samples/flux1-dev-image-to-image-api.json";
+    }
       
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch preset: ${response.statusText}`);
@@ -121,13 +130,20 @@ async function loadPreset(presetName) {
 $("#preset-txt2img").addEventListener("click", () => {
   $("#preset-txt2img").classList.add("active");
   $("#preset-img2img").classList.remove("active");
-  loadPreset("txt2img");
+  activePreset = "txt2img";
+  loadPreset();
 });
 
 $("#preset-img2img").addEventListener("click", () => {
   $("#preset-img2img").classList.add("active");
   $("#preset-txt2img").classList.remove("active");
-  loadPreset("img2img");
+  activePreset = "img2img";
+  loadPreset();
+});
+
+// Setup base model change handler
+$("#base-model-select").addEventListener("change", () => {
+  loadPreset();
 });
 
 // Custom JSON file upload
@@ -470,4 +486,5 @@ config = await api("/api/config");
 $("#mode").textContent = config.mockRunpod ? "MOCK MODE" : "RUNPOD LIVE";
 
 // Default load Text to Image preset
-loadPreset("txt2img");
+activePreset = "txt2img";
+loadPreset();
