@@ -264,11 +264,27 @@ function injectLorasIntoWorkflow(workflow, urls) {
     for (const key in inputs) {
       const val = inputs[key];
       if (Array.isArray(val) && val.length === 2) {
-        if (val[0] === modelNodeId && val[1] === 0) {
-          inputs[key] = [lastModelOutput[0], lastModelOutput[1]];
+        const sourceNodeId = val[0];
+        const outputIndex = val[1];
+        
+        // Handle Model output mapping
+        if (sourceNodeId === modelNodeId) {
+          const classType = copy[modelNodeId].class_type;
+          if (classType === "CheckpointLoaderSimple" && outputIndex === 0) {
+            inputs[key] = [lastModelOutput[0], lastModelOutput[1]];
+          } else if (classType === "UNETLoader" && outputIndex === 0) {
+            inputs[key] = [lastModelOutput[0], lastModelOutput[1]];
+          }
         }
-        if (val[0] === clipNodeId && (val[1] === 0 || (copy[clipNodeId].class_type === "CheckpointLoaderSimple" && val[1] === 1))) {
-          inputs[key] = [lastClipOutput[0], lastClipOutput[1]];
+        
+        // Handle CLIP output mapping (disjoint from Model mapping)
+        if (sourceNodeId === clipNodeId) {
+          const classType = copy[clipNodeId].class_type;
+          if (classType === "CheckpointLoaderSimple" && outputIndex === 1) {
+            inputs[key] = [lastClipOutput[0], lastClipOutput[1]];
+          } else if (classType === "CLIPLoader" && outputIndex === 0) {
+            inputs[key] = [lastClipOutput[0], lastClipOutput[1]];
+          }
         }
       }
     }
