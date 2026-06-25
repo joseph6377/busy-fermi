@@ -36,13 +36,6 @@
                 </select>
               </label>
             </div>
-
-            <div id="custom-workflow-group" style="margin-top: 15px;">
-              <label>
-                <span>Or Upload Custom API JSON</span>
-                <input id="workflow-file" type="file" accept=".json,application/json">
-              </label>
-            </div>
           </article>
 
           <article>
@@ -58,15 +51,36 @@
 
             <div id="fields"></div>
 
-            <div id="lora-group" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-              <label>
-                <span>Add LoRA URL (Civitai / Hugging Face direct link)</span>
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                  <input id="lora-url-input" type="text" placeholder="https://civitai.com/api/download/models/...">
-                  <button id="btn-add-lora" type="button" style="width: auto; padding: 11px 16px; font-size: 0.85rem;">Add</button>
+            <div class="accordion">
+              <button type="button" class="accordion-header" id="accordion-toggle">
+                <span>Advanced Options</span>
+                <svg class="chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="accordion-content" id="accordion-content">
+                <div class="accordion-inner">
+                  <div id="custom-workflow-group">
+                    <label>
+                      <span>Or Upload Custom API JSON</span>
+                      <input id="workflow-file" type="file" accept=".json,application/json">
+                    </label>
+                  </div>
+
+                  <div id="advanced-fields"></div>
+
+                  <div id="lora-group" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <label>
+                      <span>Add LoRA URL (Civitai / Hugging Face direct link)</span>
+                      <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <input id="lora-url-input" type="text" placeholder="https://civitai.com/api/download/models/...">
+                        <button id="btn-add-lora" type="button" style="width: auto; padding: 11px 16px; font-size: 0.85rem;">Add</button>
+                      </div>
+                    </label>
+                    <div id="lora-list" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
+                  </div>
                 </div>
-              </label>
-              <div id="lora-list" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
+              </div>
             </div>
 
             <button id="generate" class="btn-generate" disabled>Generate Image</button>

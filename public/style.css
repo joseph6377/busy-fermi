@@ -349,6 +349,62 @@ textarea.prominent-prompt:focus {
   margin-bottom: 16px;
 }
 
+/* Accordion Component */
+.accordion {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-input);
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.accordion-header {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-text-bright);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.accordion-header:focus {
+  outline: none;
+}
+
+.chevron {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--color-text-muted);
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+  color: var(--color-accent);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-inner {
+  padding: 0 16px 20px 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .dashboard-grid {

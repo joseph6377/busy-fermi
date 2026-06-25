@@ -42,28 +42,42 @@ function stopTimer() {
   }
 }
 
-// Render dynamic fields
-function renderWorkflowFields(fields) {
-  const sortedFields = [...fields].sort((a, b) => {
-    if (a.key === "text" && b.key !== "text") return -1;
-    if (a.key !== "text" && b.key === "text") return 1;
-    return 0;
-  });
+// Accordion support helper
+function updateAccordionHeight() {
+  const content = $("#accordion-content");
+  const chevron = $("#accordion-toggle .chevron");
+  if (!chevron || !content) return;
+  if (chevron.classList.contains("open")) {
+    content.style.maxHeight = `${content.scrollHeight}px`;
+  } else {
+    content.style.maxHeight = "0px";
+  }
+}
 
-  $("#fields").innerHTML = sortedFields.slice(0, 20).map((field) => {
-    const isPrompt = field.key === "text";
-    const inputId = `field-${field.nodeId}-${field.key}`;
-    const inputHtml = typeof field.value === "number"
-      ? `<input type="number" id="${inputId}" class="field-input" data-node-id="${field.nodeId}" data-key="${field.key}" value="${field.value}">`
-      : `<textarea id="${inputId}" class="field-input ${isPrompt ? 'prominent-prompt' : ''}" data-node-id="${field.nodeId}" data-key="${field.key}">${field.value}</textarea>`;
-    
-    return `<div class="${isPrompt ? 'prominent-label' : ''}">
-      <label>
-        <span><strong>${isPrompt ? '✨ ' : ''}${field.title}</strong> (${field.key})</span>
-        ${inputHtml}
-      </label>
-    </div>`;
-  }).join("");
+function renderFieldHtml(field) {
+  const isPrompt = field.key === "text";
+  const inputId = `field-${field.nodeId}-${field.key}`;
+  const inputHtml = typeof field.value === "number"
+    ? `<input type="number" id="${inputId}" class="field-input" data-node-id="${field.nodeId}" data-key="${field.key}" value="${field.value}">`
+    : `<textarea id="${inputId}" class="field-input ${isPrompt ? 'prominent-prompt' : ''}" data-node-id="${field.nodeId}" data-key="${field.key}">${field.value}</textarea>`;
+  
+  return `<div class="${isPrompt ? 'prominent-label' : ''}">
+    <label>
+      <span><strong>${isPrompt ? '✨ ' : ''}${field.title}</strong> (${field.key})</span>
+      ${inputHtml}
+    </label>
+  </div>`;
+}
+
+// Render dynamic fields (split into prompt and advanced)
+function renderWorkflowFields(fields) {
+  const promptFields = fields.filter((f) => f.key === "text");
+  const advancedFields = fields.filter((f) => f.key !== "text");
+
+  $("#fields").innerHTML = promptFields.map(renderFieldHtml).join("");
+  $("#advanced-fields").innerHTML = advancedFields.map(renderFieldHtml).join("");
+  
+  updateAccordionHeight();
 }
 
 // Load a preset workflow
@@ -173,6 +187,8 @@ function renderLoras() {
       renderLoras();
     });
   });
+  
+  updateAccordionHeight();
 }
 
 // Handle Add LoRA Click
@@ -420,6 +436,18 @@ async function pollJob(jobId) {
     await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 }
+
+// Accordion Toggle Event Listener
+$("#accordion-toggle").addEventListener("click", () => {
+  const content = $("#accordion-content");
+  const chevron = $("#accordion-toggle .chevron");
+  const isOpen = chevron.classList.toggle("open");
+  if (isOpen) {
+    content.style.maxHeight = `${content.scrollHeight}px`;
+  } else {
+    content.style.maxHeight = "0px";
+  }
+});
 
 // Initial boot logic
 config = await api("/api/config");
