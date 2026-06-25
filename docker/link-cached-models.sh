@@ -9,10 +9,35 @@ if [[ -z "${MODEL_ID}" ]]; then
   exit 1
 fi
 
+# Extract HF repository ID and optional revision from URL if a URL is provided
+CACHED_REVISION=""
+if [[ "${MODEL_ID}" =~ ^https?://huggingface.co/ ]]; then
+  TEMP_ID="${MODEL_ID#*huggingface.co/}"
+  if [[ "${TEMP_ID}" == *":"* ]]; then
+    HF_REPO="${TEMP_ID%%:*}"
+    HF_REV="${TEMP_ID#*:}"
+  else
+    HF_REPO="${TEMP_ID}"
+    HF_REV=""
+  fi
+  MODEL_ID="${HF_REPO}"
+  if [[ -n "${HF_REV}" ]]; then
+    CACHED_REVISION="${HF_REV}"
+  fi
+fi
+
+# Also check if raw MODEL_ID contains a colon for revision
+if [[ "${MODEL_ID}" == *":"* ]]; then
+  CACHED_REVISION="${MODEL_ID#*:}"
+  MODEL_ID="${MODEL_ID%%:*}"
+fi
+
 REPO_DIR="${CACHE_ROOT}/models--${MODEL_ID//\//--}"
 REF_FILE="${REPO_DIR}/refs/main"
 
-if [[ -f "${REF_FILE}" ]]; then
+if [[ -n "${CACHED_REVISION}" ]]; then
+  SNAPSHOT="${REPO_DIR}/snapshots/${CACHED_REVISION}"
+elif [[ -f "${REF_FILE}" ]]; then
   REVISION="$(tr -d '[:space:]' < "${REF_FILE}")"
   SNAPSHOT="${REPO_DIR}/snapshots/${REVISION}"
 else
