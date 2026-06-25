@@ -15,13 +15,13 @@ The custom worker image contains no model weights. At startup, `docker/link-cach
 
 ## Endpoint configuration
 
-- Container image: the custom image built from this repository
-- Model: the private consolidated Hugging Face repository ID
+- Container image: `ghcr.io/joseph6377/busy-fermi:latest`
+- Model: `joseph6377/flux-2-klein-9b-consolidated`
 - Hugging Face token: a RunPod secret with read access to that repository
 - Environment variable:
 
 ```text
-CACHED_MODEL_ID=<hugging-face-user>/<private-repository>
+CACHED_MODEL_ID=joseph6377/flux-2-klein-9b-consolidated
 ```
 
 - Active workers: `0`
