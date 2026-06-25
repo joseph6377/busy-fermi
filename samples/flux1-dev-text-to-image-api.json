@@ -21,11 +21,24 @@
       "title": "Positive Prompt"
     }
   },
+  "9": {
+    "class_type": "FluxGuidance",
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": [
+        "2",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "Flux Guidance"
+    }
+  },
   "3": {
     "class_type": "ConditioningZeroOut",
     "inputs": {
       "conditioning": [
-        "2",
+        "9",
         0
       ]
     },
@@ -58,7 +71,7 @@
         0
       ],
       "positive": [
-        "2",
+        "9",
         0
       ],
       "negative": [
