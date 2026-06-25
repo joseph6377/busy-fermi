@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Comfy RunPod Sessions</title>
+    <title>Comfy RunPod Studio</title>
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -11,50 +11,99 @@
       <header>
         <div>
           <p class="eyebrow">LOCAL CONTROL PLANE</p>
-          <h1>Comfy RunPod Sessions</h1>
-          <p>Keep models on your Mac. Rent cloud storage and GPU only when you generate.</p>
+          <h1>Comfy RunPod Studio</h1>
+          <p>Generate high-quality images via cloud GPU using consolidated model caching.</p>
         </div>
-        <span id="mode" class="pill">Loading…</span>
+        <span id="mode" class="pill">Checking connection…</span>
       </header>
 
-      <section class="grid">
-        <article>
-          <h2>1. Local models</h2>
-          <p class="muted">Import an existing model file from your Mac.</p>
-          <form id="model-form">
-            <label>Absolute model path<input id="model-path" required placeholder="/Users/you/Models/model.safetensors"></label>
-            <label>Model type<select id="model-type">
-              <option value="checkpoints">Checkpoint</option>
-              <option value="loras">LoRA</option>
-              <option value="vae">VAE</option>
-              <option value="controlnet">ControlNet</option>
-              <option value="diffusion_models">Diffusion model</option>
-              <option value="text_encoders">Text encoder</option>
-            </select></label>
-            <button>Import local model</button>
-          </form>
-          <div id="models" class="list"></div>
-        </article>
+      <div class="dashboard-grid">
+        <!-- Left Column: Controls & Presets -->
+        <section class="controls-column">
+          <article>
+            <h2>1. Choose Preset</h2>
+            <div class="preset-group">
+              <button id="preset-txt2img" class="btn-preset active">Text to Image</button>
+              <button id="preset-img2img" class="btn-preset">Image to Image</button>
+            </div>
+            
+            <div style="margin-top: 15px;">
+              <label>
+                <span>Select Base Model</span>
+                <select id="base-model-select">
+                  <option value="flux">FLUX.2 Klein 9B (Distilled FP8)</option>
+                  <option value="sdxl">Stable Diffusion XL (SDXL)</option>
+                </select>
+              </label>
+            </div>
 
-        <article>
-          <h2>2. API workflow</h2>
-          <input id="workflow-file" type="file" accept=".json,application/json">
-          <div id="workflow-summary" class="status">No workflow loaded.</div>
-          <div id="fields" class="list"></div>
-        </article>
+            <div id="custom-workflow-group" style="margin-top: 15px;">
+              <label>
+                <span>Or Upload Custom API JSON</span>
+                <input id="workflow-file" type="file" accept=".json,application/json">
+              </label>
+            </div>
+          </article>
 
-        <article>
-          <h2>3. Cloud session</h2>
-          <p class="muted">A temporary volume is represented safely in mock mode.</p>
-          <div id="session" class="status">Checking session…</div>
-          <div class="actions">
-            <button id="start-session">Start session</button>
-            <button id="generate" disabled>Generate</button>
-            <button id="end-session" class="danger">End and delete</button>
-          </div>
-        </article>
-      </section>
-      <div id="message" role="status"></div>
+          <article>
+            <h2>2. Configure Generation</h2>
+            <div id="workflow-summary" class="muted" style="font-size: 0.8rem; margin-bottom: 12px;">No preset loaded.</div>
+            
+            <div id="img2img-upload-group" style="display: none;">
+              <label>
+                <span>Input Image (Source)</span>
+                <input id="input-image-file" type="file" accept="image/*">
+              </label>
+            </div>
+
+            <div id="fields"></div>
+
+            <div id="lora-group" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+              <label>
+                <span>Add LoRA URL (Civitai / Hugging Face direct link)</span>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                  <input id="lora-url-input" type="text" placeholder="https://civitai.com/api/download/models/...">
+                  <button id="btn-add-lora" type="button" style="width: auto; padding: 11px 16px; font-size: 0.85rem;">Add</button>
+                </div>
+              </label>
+              <div id="lora-list" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <button id="generate" class="btn-generate" disabled>Generate Image</button>
+          </article>
+        </section>
+
+        <!-- Right Column: Status & Outputs -->
+        <section class="output-column">
+          <!-- Job Status Panel -->
+          <article id="status-card" style="display: none;">
+            <div class="status-panel">
+              <div class="status-header">
+                <h2>Execution Status</h2>
+                <span id="status-badge" class="status-badge">IN_QUEUE</span>
+              </div>
+              
+              <div class="progress-container">
+                <div class="progress-track">
+                  <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <div class="progress-text">
+                  <span id="progress-phase">Initializing...</span>
+                  <span id="progress-timer">0.0s</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Generated Images Gallery -->
+          <article id="gallery-card" style="display: none;">
+            <h2>Generated Output</h2>
+            <div id="gallery-container" class="gallery-grid"></div>
+          </article>
+          
+          <div id="message" role="status"></div>
+        </section>
+      </div>
     </main>
     <script type="module" src="/app.js"></script>
   </body>

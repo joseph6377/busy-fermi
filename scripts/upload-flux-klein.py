@@ -64,11 +64,7 @@ def main():
             folder_path=str(local_dir),
             repo_id=repo_id,
             repo_type="model",
-            ignore_patterns=[".gitkeep"],
-            # Using multi_commits allows large uploads to be split into multiple PRs/commits,
-            # avoiding gateway timeouts for extremely large files on standard git push
-            multi_commits=True,
-            multi_commits_verbose=True
+            ignore_patterns=[".gitkeep"]
         )
         print("Model consolidation upload complete!")
         print(f"Your private model repository: https://huggingface.co/models/{repo_id}")

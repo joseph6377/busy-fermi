@@ -1,5 +1,6 @@
 FROM runpod/worker-comfyui:5.8.6-base
 
+COPY docker/custom_nodes /comfyui/custom_nodes
 COPY docker/link-cached-models.sh /link-cached-models.sh
 RUN chmod 0755 /link-cached-models.sh
 

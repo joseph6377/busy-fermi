@@ -14,6 +14,7 @@ import { saveJobOutputs } from "./lib/outputs.js";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const config = loadConfig(root);
 await ensureDirectories(config);
+const activeJobsEndpoint = new Map();
 
 const app = express();
 app.disable("x-powered-by");
@@ -21,6 +22,7 @@ app.use(cors({ origin: /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/ }));
 app.use(express.json({ limit: config.maxRequestBytes }));
 app.use(express.static(path.join(root, "public")));
 app.use("/outputs", express.static(config.outputDir));
+app.use("/samples", express.static(path.join(root, "samples")));
 
 app.get("/api/config", (_request, response) => response.json(publicConfig(config)));
 app.get("/api/models", async (_request, response) => response.json({ models: await listModels(config) }));
@@ -53,10 +55,15 @@ app.post("/api/jobs", async (request, response) => {
     response.status(202).json(await addMockJob(config));
     return;
   }
+  const baseModel = request.body.baseModel || "flux";
+  const endpointId = config.endpoints[baseModel] || config.runpodEndpointId;
   const job = await submitJob(config, {
     workflow: request.body.workflow,
     images: request.body.images || []
-  });
+  }, endpointId);
+  if (job && job.id) {
+    activeJobsEndpoint.set(job.id, endpointId);
+  }
   response.status(202).json(job);
 });
 app.get("/api/jobs/:id", async (request, response) => {
@@ -67,7 +74,8 @@ app.get("/api/jobs/:id", async (request, response) => {
     response.json(job);
     return;
   }
-  const job = await getJob(config, request.params.id);
+  const endpointId = activeJobsEndpoint.get(request.params.id) || config.runpodEndpointId;
+  const job = await getJob(config, request.params.id, endpointId);
   if (job.status === "COMPLETED" && Array.isArray(job.output?.images)) {
     job.saved = await saveJobOutputs(config, job);
   }
@@ -78,7 +86,8 @@ app.post("/api/jobs/:id/cancel", async (request, response) => {
     response.json({ id: request.params.id, status: "CANCELLED" });
     return;
   }
-  response.json(await cancelJob(config, request.params.id));
+  const endpointId = activeJobsEndpoint.get(request.params.id) || config.runpodEndpointId;
+  response.json(await cancelJob(config, request.params.id, endpointId));
 });
 
 app.use((error, _request, response, _next) => {
