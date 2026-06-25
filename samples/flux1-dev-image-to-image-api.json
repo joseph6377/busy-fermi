@@ -76,11 +76,11 @@
     "class_type": "KSampler",
     "inputs": {
       "seed": 123456789,
-      "steps": 20,
+      "steps": 28,
       "cfg": 1,
       "sampler_name": "euler",
       "scheduler": "normal",
-      "denoise": 0.6,
+      "denoise": 0.3,
       "model": [
         "1",
         0
