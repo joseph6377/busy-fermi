@@ -1,0 +1,19 @@
+{
+  "name": "comfy-runpod-local",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node proxy.js",
+    "dev": "node --watch proxy.js",
+    "test": "node --test",
+    "download:flux-klein": "node scripts/download-flux-klein.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
+    "@aws-sdk/lib-storage": "^3.1075.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Comfy RunPod Sessions</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">LOCAL CONTROL PLANE</p>
+          <h1>Comfy RunPod Sessions</h1>
+          <p>Keep models on your Mac. Rent cloud storage and GPU only when you generate.</p>
+        </div>
+        <span id="mode" class="pill">Loading…</span>
+      </header>
+
+      <section class="grid">
+        <article>
+          <h2>1. Local models</h2>
+          <p class="muted">Import an existing model file from your Mac.</p>
+          <form id="model-form">
+            <label>Absolute model path<input id="model-path" required placeholder="/Users/you/Models/model.safetensors"></label>
+            <label>Model type<select id="model-type">
+              <option value="checkpoints">Checkpoint</option>
+              <option value="loras">LoRA</option>
+              <option value="vae">VAE</option>
+              <option value="controlnet">ControlNet</option>
+              <option value="diffusion_models">Diffusion model</option>
+              <option value="text_encoders">Text encoder</option>
+            </select></label>
+            <button>Import local model</button>
+          </form>
+          <div id="models" class="list"></div>
+        </article>
+
+        <article>
+          <h2>2. API workflow</h2>
+          <input id="workflow-file" type="file" accept=".json,application/json">
+          <div id="workflow-summary" class="status">No workflow loaded.</div>
+          <div id="fields" class="list"></div>
+        </article>
+
+        <article>
+          <h2>3. Cloud session</h2>
+          <p class="muted">A temporary volume is represented safely in mock mode.</p>
+          <div id="session" class="status">Checking session…</div>
+          <div class="actions">
+            <button id="start-session">Start session</button>
+            <button id="generate" disabled>Generate</button>
+            <button id="end-session" class="danger">End and delete</button>
+          </div>
+        </article>
+      </section>
+      <div id="message" role="status"></div>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

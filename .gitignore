@@ -1,0 +1,10 @@
+.env
+node_modules/
+outputs/*
+!outputs/.gitkeep
+local_models/*
+!local_models/.gitkeep
+.model-cache/
+session_state.json
+*.log
+.DS_Store
