@@ -85,8 +85,8 @@ async function loadPreset(presetName) {
   try {
     message("Loading preset...");
     const url = presetName === "txt2img"
-      ? "/samples/flux2-klein-9b-text-to-image-api.json"
-      : "/samples/flux2-klein-9b-image-to-image-api.json";
+      ? "/samples/flux1-dev-text-to-image-api.json"
+      : "/samples/flux1-dev-image-to-image-api.json";
       
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch preset: ${response.statusText}`);

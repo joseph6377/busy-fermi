@@ -14,19 +14,9 @@ if (!token) throw new Error("HF_TOKEN is missing");
 
 const files = [
   {
-    modelType: "diffusion_models",
-    filename: "flux-2-klein-9b-fp8.safetensors",
-    url: "https://huggingface.co/black-forest-labs/FLUX.2-klein-9b-fp8/resolve/main/flux-2-klein-9b-fp8.safetensors"
-  },
-  {
-    modelType: "text_encoders",
-    filename: "qwen_3_8b_fp8mixed.safetensors",
-    url: "https://huggingface.co/Comfy-Org/flux2-klein-9B/resolve/main/split_files/text_encoders/qwen_3_8b_fp8mixed.safetensors"
-  },
-  {
-    modelType: "vae",
-    filename: "flux2-vae.safetensors",
-    url: "https://huggingface.co/Comfy-Org/flux2-klein-4B/resolve/main/split_files/vae/flux2-vae.safetensors"
+    modelType: "checkpoints",
+    filename: "flux1-dev-fp8.safetensors",
+    url: "https://huggingface.co/Comfy-Org/flux1-dev/resolve/main/flux1-dev-fp8.safetensors"
   }
 ];
 
@@ -77,4 +67,4 @@ for (const file of files) {
   console.log(`${file.filename}: verified and registered`);
 }
 
-console.log("FLUX.2 Klein 9B model set is ready locally.");
+console.log("FLUX.1 Dev model set is ready locally.");

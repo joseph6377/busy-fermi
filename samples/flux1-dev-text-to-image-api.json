@@ -1,52 +1,31 @@
 {
   "1": {
-    "class_type": "UNETLoader",
+    "class_type": "CheckpointLoaderSimple",
     "inputs": {
-      "unet_name": "flux-2-klein-9b-fp8.safetensors",
-      "weight_dtype": "default"
+      "ckpt_name": "flux1-dev-fp8.safetensors"
     },
     "_meta": {
-      "title": "Load FLUX.2 Klein 9B"
+      "title": "Load Checkpoint (FLUX.1 Dev)"
     }
   },
   "2": {
-    "class_type": "CLIPLoader",
-    "inputs": {
-      "clip_name": "qwen_3_8b_fp8mixed.safetensors",
-      "type": "flux2",
-      "device": "default"
-    },
-    "_meta": {
-      "title": "Load Qwen 3 8B Encoder"
-    }
-  },
-  "3": {
-    "class_type": "VAELoader",
-    "inputs": {
-      "vae_name": "flux2-vae.safetensors"
-    },
-    "_meta": {
-      "title": "Load FLUX.2 VAE"
-    }
-  },
-  "4": {
     "class_type": "CLIPTextEncode",
     "inputs": {
       "text": "A cinematic photograph of a tiny observatory on a windswept hill at blue hour, warm windows, dramatic clouds, finely detailed",
       "clip": [
-        "2",
-        0
+        "1",
+        1
       ]
     },
     "_meta": {
       "title": "Positive Prompt"
     }
   },
-  "5": {
+  "3": {
     "class_type": "ConditioningZeroOut",
     "inputs": {
       "conditioning": [
-        "4",
+        "2",
         0
       ]
     },
@@ -54,33 +33,18 @@
       "title": "Zero Negative Conditioning"
     }
   },
-  "10": {
-    "class_type": "LoadImage",
+  "4": {
+    "class_type": "EmptyLatentImage",
     "inputs": {
-      "image": "input_image.png",
-      "upload": "image"
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
     },
     "_meta": {
-      "title": "Load Input Image"
+      "title": "Empty Latent"
     }
   },
-  "14": {
-    "class_type": "VAEEncode",
-    "inputs": {
-      "pixels": [
-        "10",
-        0
-      ],
-      "vae": [
-        "3",
-        0
-      ]
-    },
-    "_meta": {
-      "title": "VAE Encode"
-    }
-  },
-  "11": {
+  "5": {
     "class_type": "KSampler",
     "inputs": {
       "seed": 123456789,
@@ -88,21 +52,21 @@
       "cfg": 1,
       "sampler_name": "euler",
       "scheduler": "normal",
-      "denoise": 0.6,
+      "denoise": 1,
       "model": [
         "1",
         0
       ],
       "positive": [
-        "4",
+        "2",
         0
       ],
       "negative": [
-        "5",
+        "3",
         0
       ],
       "latent_image": [
-        "14",
+        "4",
         0
       ]
     },
@@ -110,28 +74,28 @@
       "title": "KSampler"
     }
   },
-  "12": {
+  "6": {
     "class_type": "VAEDecode",
     "inputs": {
       "samples": [
-        "11",
+        "5",
         0
       ],
       "vae": [
-        "3",
-        0
+        "1",
+        2
       ]
     },
     "_meta": {
-      "title": "Decode"
+      "title": "VAE Decode"
     }
   },
-  "13": {
+  "7": {
     "class_type": "SaveImage",
     "inputs": {
-      "filename_prefix": "Flux2-Klein-9B-Img2Img",
+      "filename_prefix": "Flux1-Dev",
       "images": [
-        "12",
+        "6",
         0
       ]
     },

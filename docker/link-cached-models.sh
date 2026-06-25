@@ -24,22 +24,18 @@ if [[ -z "${SNAPSHOT:-}" || ! -d "${SNAPSHOT}" ]]; then
   exit 1
 fi
 
-declare -a REQUIRED_FILES=(
-  "diffusion_models/flux-2-klein-9b-fp8.safetensors"
-  "text_encoders/qwen_3_8b_fp8mixed.safetensors"
-  "vae/flux2-vae.safetensors"
-)
+if [[ -f "${SNAPSHOT}/flux1-dev-fp8.safetensors" ]]; then
+  SOURCE_PATH="${SNAPSHOT}/flux1-dev-fp8.safetensors"
+elif [[ -f "${SNAPSHOT}/checkpoints/flux1-dev-fp8.safetensors" ]]; then
+  SOURCE_PATH="${SNAPSHOT}/checkpoints/flux1-dev-fp8.safetensors"
+else
+  echo "Required cached model file flux1-dev-fp8.safetensors is missing in snapshot ${SNAPSHOT}" >&2
+  exit 1
+fi
 
-for relative_path in "${REQUIRED_FILES[@]}"; do
-  source_path="${SNAPSHOT}/${relative_path}"
-  target_path="/comfyui/models/${relative_path}"
-  if [[ ! -f "${source_path}" ]]; then
-    echo "Required cached model file is missing: ${source_path}" >&2
-    exit 1
-  fi
-  mkdir -p "$(dirname "${target_path}")"
-  ln -sfn "${source_path}" "${target_path}"
-  echo "Linked ${relative_path}"
-done
+TARGET_PATH="/comfyui/models/checkpoints/flux1-dev-fp8.safetensors"
+mkdir -p "$(dirname "${TARGET_PATH}")"
+ln -sfn "${SOURCE_PATH}" "${TARGET_PATH}"
+echo "Linked flux1-dev-fp8.safetensors"
 
 exec /start.sh

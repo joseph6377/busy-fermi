@@ -1,38 +1,4 @@
 {
   "version": 1,
-  "models": [
-    {
-      "id": "16207a2e-1e53-44f0-bf8b-2686060470df",
-      "source": "local",
-      "sourceUrl": null,
-      "filename": "flux-2-klein-9b-fp8.safetensors",
-      "modelType": "diffusion_models",
-      "localPath": "local_models/diffusion_models/flux-2-klein-9b-fp8.safetensors",
-      "sizeBytes": 9433061528,
-      "sha256": "865ba09f5b4c3cbd3468a4bd3acb9fcb2f8740c54317482f0bcd4ed1d3655cee",
-      "installedAt": "2026-06-25T04:54:13.375Z"
-    },
-    {
-      "id": "5cf93010-c04c-4c1d-bd71-ec73a4864d1a",
-      "source": "local",
-      "sourceUrl": null,
-      "filename": "qwen_3_8b_fp8mixed.safetensors",
-      "modelType": "text_encoders",
-      "localPath": "local_models/text_encoders/qwen_3_8b_fp8mixed.safetensors",
-      "sizeBytes": 8664848742,
-      "sha256": "abad16806e0cbabc54e0325d6565847443fe396d5f0be38bb3cd3fe75a1201d6",
-      "installedAt": "2026-06-25T04:58:10.722Z"
-    },
-    {
-      "id": "26546da5-2ec3-4c2b-9c73-119c45431e00",
-      "source": "local",
-      "sourceUrl": null,
-      "filename": "flux2-vae.safetensors",
-      "modelType": "vae",
-      "localPath": "local_models/vae/flux2-vae.safetensors",
-      "sizeBytes": 336211292,
-      "sha256": "868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3",
-      "installedAt": "2026-06-25T04:58:20.128Z"
-    }
-  ]
+  "models": []
 }

@@ -7,7 +7,7 @@
     "start": "node proxy.js",
     "dev": "node --watch proxy.js",
     "test": "node --test",
-    "download:flux-klein": "node scripts/download-flux-klein.js"
+    "download:flux-dev": "node scripts/download-flux-dev.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1075.0",

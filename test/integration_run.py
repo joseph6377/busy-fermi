@@ -5,9 +5,9 @@ import urllib.error
 import sys
 
 def main():
-    print("Loading test workflow from samples/flux2-klein-9b-text-to-image-api.json...")
+    print("Loading test workflow from samples/flux1-dev-text-to-image-api.json...")
     try:
-        with open("samples/flux2-klein-9b-text-to-image-api.json", "r") as f:
+        with open("samples/flux1-dev-text-to-image-api.json", "r") as f:
             workflow = json.load(f)
     except Exception as e:
         print(f"Error loading workflow file: {e}")
