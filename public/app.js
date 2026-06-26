@@ -62,7 +62,7 @@ function updateAccordionHeight() {
 }
 
 function renderFieldHtml(field) {
-  const isPrompt = field.key === "text";
+  const isPrompt = ["text", "positive", "negative"].includes(field.key);
   const inputId = `field-${field.nodeId}-${field.key}`;
   const inputHtml = typeof field.value === "number"
     ? `<input type="number" id="${inputId}" class="field-input" data-node-id="${field.nodeId}" data-key="${field.key}" value="${field.value}">`
@@ -78,8 +78,8 @@ function renderFieldHtml(field) {
 
 // Render dynamic fields (split into prompt and advanced)
 function renderWorkflowFields(fields) {
-  const promptFields = fields.filter((f) => f.key === "text");
-  const advancedFields = fields.filter((f) => f.key !== "text");
+  const promptFields = fields.filter((f) => ["text", "positive", "negative"].includes(f.key));
+  const advancedFields = fields.filter((f) => !["text", "positive", "negative"].includes(f.key));
 
   $("#fields").innerHTML = promptFields.map(renderFieldHtml).join("");
   $("#advanced-fields").innerHTML = advancedFields.map(renderFieldHtml).join("");
