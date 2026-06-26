@@ -24,3 +24,22 @@ test("saves all valid base64 image outputs and metadata", async () => {
   assert.ok(saved.every((item) => !item.filename.includes("..")));
   await fs.rm(root, { recursive: true, force: true });
 });
+
+test("saves base64 video outputs and metadata", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "comfy-runpod-"));
+  const config = { root, outputDir: path.join(root, "outputs") };
+  // Mock base64 video payload
+  const mockVideoBase64 = "AAAAIGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAAAhkYXRhAAAAAA==";
+  const saved = await saveJobOutputs(config, {
+    id: "job-2",
+    status: "COMPLETED",
+    output: {
+      images: [
+        { filename: "result.mp4", image: `data:video/mp4;base64,${mockVideoBase64}` }
+      ]
+    }
+  });
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].filename.endsWith(".mp4"), true);
+  await fs.rm(root, { recursive: true, force: true });
+});

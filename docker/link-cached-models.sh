@@ -55,11 +55,77 @@ echo "MODEL_ID: ${MODEL_ID}"
 echo "REPO_DIR: ${REPO_DIR}"
 echo "SNAPSHOT: ${SNAPSHOT}"
 
-# Check for FLUX.2 Klein files
-FLUX2_DETECTOR_1="${SNAPSHOT}/diffusion_models/flux-2-klein-9b-fp8.safetensors"
-FLUX2_DETECTOR_2="${SNAPSHOT}/flux-2-klein-9b-fp8.safetensors"
+# Check for LTX-2.3 files
+LTX2_DETECTOR_1="${SNAPSHOT}/diffusion_models/LTX-2/ltx-2-19b-dev-fp8.safetensors"
+LTX2_DETECTOR_2="${SNAPSHOT}/diffusion_models/ltx-2-19b-dev-fp8.safetensors"
+LTX2_DETECTOR_3="${SNAPSHOT}/ltx-2-19b-dev-fp8.safetensors"
 
-if [[ -f "${FLUX2_DETECTOR_1}" || -f "${FLUX2_DETECTOR_2}" ]]; then
+if [[ -f "${LTX2_DETECTOR_1}" || -f "${LTX2_DETECTOR_2}" || -f "${LTX2_DETECTOR_3}" ]]; then
+  echo "Detected LTX-2.3 repository. Linking LTX-2.3 files..."
+  
+  if [[ -f "${LTX2_DETECTOR_1}" ]]; then
+    DIFF_SRC="${LTX2_DETECTOR_1}"
+    GEMMA_SRC="${SNAPSHOT}/text_encoders/GEMMA-3/gemma-3-12b-it-fp8_e4m3fn.safetensors"
+    PROJ_SRC="${SNAPSHOT}/text_encoders/LTX-2/ltx-2-19b-embeddings_connector_dev_bf16.safetensors"
+    VVAE_SRC="${SNAPSHOT}/vae/LTX2_video_vae_bf16.safetensors"
+    AVAE_SRC="${SNAPSHOT}/vae/LTX2_audio_vae_bf16.safetensors"
+    UPSCALER_SRC="${SNAPSHOT}/latent_upscale_models/ltx-2-spatial-upscaler-x2-1.0.safetensors"
+  elif [[ -f "${LTX2_DETECTOR_2}" ]]; then
+    DIFF_SRC="${LTX2_DETECTOR_2}"
+    GEMMA_SRC="${SNAPSHOT}/text_encoders/gemma-3-12b-it-fp8_e4m3fn.safetensors"
+    PROJ_SRC="${SNAPSHOT}/text_encoders/ltx-2-19b-embeddings_connector_dev_bf16.safetensors"
+    VVAE_SRC="${SNAPSHOT}/vae/LTX2_video_vae_bf16.safetensors"
+    AVAE_SRC="${SNAPSHOT}/vae/LTX2_audio_vae_bf16.safetensors"
+    UPSCALER_SRC="${SNAPSHOT}/latent_upscale_models/ltx-2-spatial-upscaler-x2-1.0.safetensors"
+  else
+    DIFF_SRC="${LTX2_DETECTOR_3}"
+    GEMMA_SRC="${SNAPSHOT}/gemma-3-12b-it-fp8_e4m3fn.safetensors"
+    PROJ_SRC="${SNAPSHOT}/ltx-2-19b-embeddings_connector_dev_bf16.safetensors"
+    VVAE_SRC="${SNAPSHOT}/LTX2_video_vae_bf16.safetensors"
+    AVAE_SRC="${SNAPSHOT}/LTX2_audio_vae_bf16.safetensors"
+    UPSCALER_SRC="${SNAPSHOT}/ltx-2-spatial-upscaler-x2-1.0.safetensors"
+  fi
+
+  for f in "${DIFF_SRC}" "${GEMMA_SRC}" "${PROJ_SRC}" "${VVAE_SRC}" "${AVAE_SRC}"; do
+    if [[ ! -f "$f" ]]; then
+      echo "Error: Required LTX-2.3 file is missing: $f" >&2
+      exit 1
+    fi
+  done
+
+  DIFF_TARGET="/comfyui/models/diffusion_models/ltx-2-19b-dev-fp8.safetensors"
+  mkdir -p "$(dirname "${DIFF_TARGET}")"
+  ln -sfn "$(realpath "${DIFF_SRC}")" "${DIFF_TARGET}"
+  echo "Linked Diffusion Model: ${DIFF_TARGET}"
+
+  GEMMA_TARGET="/comfyui/models/text_encoders/gemma-3-12b-it-fp8_e4m3fn.safetensors"
+  mkdir -p "$(dirname "${GEMMA_TARGET}")"
+  ln -sfn "$(realpath "${GEMMA_SRC}")" "${GEMMA_TARGET}"
+  echo "Linked Gemma 3: ${GEMMA_TARGET}"
+
+  PROJ_TARGET="/comfyui/models/text_encoders/ltx-2-19b-embeddings_connector_dev_bf16.safetensors"
+  mkdir -p "$(dirname "${PROJ_TARGET}")"
+  ln -sfn "$(realpath "${PROJ_SRC}")" "${PROJ_TARGET}"
+  echo "Linked Text Projection: ${PROJ_TARGET}"
+
+  VVAE_TARGET="/comfyui/models/vae/LTX2_video_vae_bf16.safetensors"
+  mkdir -p "$(dirname "${VVAE_TARGET}")"
+  ln -sfn "$(realpath "${VVAE_SRC}")" "${VVAE_TARGET}"
+  echo "Linked Video VAE: ${VVAE_TARGET}"
+
+  AVAE_TARGET="/comfyui/models/vae/LTX2_audio_vae_bf16.safetensors"
+  mkdir -p "$(dirname "${AVAE_TARGET}")"
+  ln -sfn "$(realpath "${AVAE_SRC}")" "${AVAE_TARGET}"
+  echo "Linked Audio VAE: ${AVAE_TARGET}"
+
+  if [[ -f "${UPSCALER_SRC}" ]]; then
+    UPSCALER_TARGET="/comfyui/models/latent_upscale_models/ltx-2-spatial-upscaler-x2-1.0.safetensors"
+    mkdir -p "$(dirname "${UPSCALER_TARGET}")"
+    ln -sfn "$(realpath "${UPSCALER_SRC}")" "${UPSCALER_TARGET}"
+    echo "Linked Spatial Upscaler: ${UPSCALER_TARGET}"
+  fi
+
+elif [[ -f "${FLUX2_DETECTOR_1}" || -f "${FLUX2_DETECTOR_2}" ]]; then
   echo "Detected FLUX.2 Klein 9B repository. Linking FLUX.2 Klein files..."
   
   if [[ -f "${FLUX2_DETECTOR_1}" ]]; then

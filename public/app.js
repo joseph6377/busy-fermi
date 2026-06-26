@@ -64,9 +64,20 @@ function updateAccordionHeight() {
 function renderFieldHtml(field) {
   const isPrompt = ["text", "positive", "negative"].includes(field.key);
   const inputId = `field-${field.nodeId}-${field.key}`;
-  const inputHtml = typeof field.value === "number"
-    ? `<input type="number" id="${inputId}" class="field-input" data-node-id="${field.nodeId}" data-key="${field.key}" value="${field.value}">`
-    : `<textarea id="${inputId}" class="field-input ${isPrompt ? 'prominent-prompt' : ''}" data-node-id="${field.nodeId}" data-key="${field.key}">${field.value}</textarea>`;
+  
+  let inputHtml = "";
+  if (field.key === "audio_enabled") {
+    const checked = field.value === true || field.value === "true" ? "checked" : "";
+    inputHtml = `<div style="display: flex; align-items: center; margin-top: 8px; gap: 8px;"><input type="checkbox" id="${inputId}" class="field-input-bool" data-node-id="${field.nodeId}" data-key="${field.key}" ${checked} style="width: 18px; height: 18px; cursor: pointer;"> <span style="font-size: 0.85rem; color: var(--color-text-muted);">Enable Audio</span></div>`;
+  } else if (field.key === "sigmas_preset") {
+    const options = ["Standard (8 steps)", "Fast (4 steps)", "Custom"];
+    const optionHtml = options.map(opt => `<option value="${opt}" ${field.value === opt ? 'selected' : ''}>${opt}</option>`).join("");
+    inputHtml = `<select id="${inputId}" class="field-input-select" style="width: 100%; height: 38px; padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: var(--color-text-bright); margin-top: 8px;" data-node-id="${field.nodeId}" data-key="${field.key}">${optionHtml}</select>`;
+  } else if (typeof field.value === "number") {
+    inputHtml = `<input type="number" id="${inputId}" class="field-input" data-node-id="${field.nodeId}" data-key="${field.key}" value="${field.value}">`;
+  } else {
+    inputHtml = `<textarea id="${inputId}" class="field-input ${isPrompt ? 'prominent-prompt' : ''}" data-node-id="${field.nodeId}" data-key="${field.key}">${field.value}</textarea>`;
+  }
   
   return `<div class="${isPrompt ? 'prominent-label' : ''}">
     <label>
@@ -91,24 +102,11 @@ function renderWorkflowFields(fields) {
 async function loadPreset() {
   try {
     message("Loading preset...");
-    const model = $("#base-model-select").value;
     let url = "";
-    if (model === "flux2") {
-      if (activePreset === "txt2img") {
-        url = "/samples/flux2-klein-9b-text-to-image-api.json";
-      } else if (activePreset === "img2img") {
-        url = "/samples/flux2-klein-9b-image-to-image-api.json";
-      } else if (activePreset === "inpaint") {
-        url = "/samples/flux2-klein-9b-inpaint-api.json";
-      }
-    } else {
-      if (activePreset === "txt2img") {
-        url = "/samples/flux1-dev-text-to-image-api.json";
-      } else if (activePreset === "img2img") {
-        url = "/samples/flux1-dev-image-to-image-api.json";
-      } else if (activePreset === "inpaint") {
-        url = "/samples/flux1-dev-image-to-image-api.json";
-      }
+    if (activePreset === "txt2img") {
+      url = "/samples/ltx23-text-to-video-api.json";
+    } else if (activePreset === "img2img") {
+      url = "/samples/ltx23-image-to-video-api.json";
     }
       
     const response = await fetch(url);
@@ -146,7 +144,6 @@ async function loadPreset() {
 $("#preset-txt2img").addEventListener("click", () => {
   $("#preset-txt2img").classList.add("active");
   $("#preset-img2img").classList.remove("active");
-  $("#preset-inpaint").classList.remove("active");
   activePreset = "txt2img";
   loadPreset();
 });
@@ -154,16 +151,7 @@ $("#preset-txt2img").addEventListener("click", () => {
 $("#preset-img2img").addEventListener("click", () => {
   $("#preset-img2img").classList.add("active");
   $("#preset-txt2img").classList.remove("active");
-  $("#preset-inpaint").classList.remove("active");
   activePreset = "img2img";
-  loadPreset();
-});
-
-$("#preset-inpaint").addEventListener("click", () => {
-  $("#preset-inpaint").classList.add("active");
-  $("#preset-txt2img").classList.remove("active");
-  $("#preset-img2img").classList.remove("active");
-  activePreset = "inpaint";
   loadPreset();
 });
 
@@ -181,7 +169,6 @@ $("#workflow-file").addEventListener("change", async (event) => {
     // Clear active preset classes
     $("#preset-txt2img").classList.remove("active");
     $("#preset-img2img").classList.remove("active");
-    $("#preset-inpaint").classList.remove("active");
     
     const result = await api("/api/workflows/inspect", {
       method: "POST", body: JSON.stringify({ workflow })
@@ -400,7 +387,7 @@ $("#generate").addEventListener("click", async () => {
       }
     }
     
-    // Read and update editable text/number inputs
+    // Read and update editable inputs (text, number, boolean, select)
     if (workflow) {
       document.querySelectorAll(".field-input").forEach((input) => {
         const nodeId = input.getAttribute("data-node-id");
@@ -411,6 +398,20 @@ $("#generate").addEventListener("click", async () => {
         }
         if (workflow[nodeId] && workflow[nodeId].inputs) {
           workflow[nodeId].inputs[key] = value;
+        }
+      });
+      document.querySelectorAll(".field-input-bool").forEach((input) => {
+        const nodeId = input.getAttribute("data-node-id");
+        const key = input.getAttribute("data-key");
+        if (workflow[nodeId] && workflow[nodeId].inputs) {
+          workflow[nodeId].inputs[key] = input.checked;
+        }
+      });
+      document.querySelectorAll(".field-input-select").forEach((input) => {
+        const nodeId = input.getAttribute("data-node-id");
+        const key = input.getAttribute("data-key");
+        if (workflow[nodeId] && workflow[nodeId].inputs) {
+          workflow[nodeId].inputs[key] = input.value;
         }
       });
     }
@@ -506,7 +507,7 @@ async function pollJob(jobId) {
       $("#progress-fill").style.width = `${progress}%`;
       $("#progress-phase").textContent = phase;
       
-      message(`Job ${job.id}: ${status}${job.saved?.length ? ` · saved ${job.saved.length} image(s)` : ""}`);
+      message(`Job ${job.id}: ${status}${job.saved?.length ? ` · saved ${job.saved.length} file(s)` : ""}`);
       
       if (terminal.has(status)) {
         activeJobId = null;
@@ -515,15 +516,21 @@ async function pollJob(jobId) {
         
         if (status === "COMPLETED" && Array.isArray(job.saved) && job.saved.length > 0) {
           $("#gallery-card").style.display = "block";
-          $("#gallery-container").innerHTML = job.saved.map((item) => `
-            <div class="gallery-card">
-              <img src="${item.url}" alt="${item.filename}">
-              <div class="gallery-info">
-                <div class="gallery-filename">${item.filename}</div>
-                <div class="gallery-meta">${(item.sizeBytes / 1024 / 1024).toFixed(2)} MB</div>
+          $("#gallery-container").innerHTML = job.saved.map((item) => {
+            const isVideo = item.filename.endsWith(".mp4") || item.filename.endsWith(".webm");
+            const mediaHtml = isVideo
+              ? `<video src="${item.url}" autoplay loop muted controls style="max-width: 100%; border-radius: 6px; display: block;"></video>`
+              : `<img src="${item.url}" alt="${item.filename}">`;
+            return `
+              <div class="gallery-card">
+                ${mediaHtml}
+                <div class="gallery-info">
+                  <div class="gallery-filename">${item.filename}</div>
+                  <div class="gallery-meta">${(item.sizeBytes / 1024 / 1024).toFixed(2)} MB</div>
+                </div>
               </div>
-            </div>
-          `).join("");
+            `;
+          }).join("");
         } else if (status !== "COMPLETED") {
           message(`Job failed with status: ${status}. Error details: ${job.error || job.message || "Unknown error"}`, true);
         }

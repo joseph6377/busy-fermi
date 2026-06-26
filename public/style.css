@@ -279,9 +279,9 @@ textarea {
   border-color: var(--border-focus);
 }
 
-.gallery-card img {
+.gallery-card img, .gallery-card video {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 1.5;
   object-fit: cover;
   display: block;
 }

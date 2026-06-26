@@ -1,14 +1,21 @@
 # RunPod Cached Model Setup
 
-RunPod currently supports one cached Hugging Face repository per Serverless endpoint. FLUX.2 Klein 9B needs three ComfyUI files that originate from separate repositories, so this project uses one private consolidation repository with this structure:
+RunPod currently supports one cached Hugging Face repository per Serverless endpoint. LTX-2.3 Video+Audio needs multiple ComfyUI files that originate from separate repositories, so this project uses one private consolidation repository with this structure:
 
 ```text
 diffusion_models/
-└── flux-2-klein-9b-fp8.safetensors
+└── LTX-2/
+    └── ltx-2-19b-dev-fp8.safetensors
 text_encoders/
-└── qwen_3_8b_fp8mixed.safetensors
+├── GEMMA-3/
+│   └── gemma-3-12b-it-fp8_e4m3fn.safetensors
+└── LTX-2/
+    └── ltx-2-19b-embeddings_connector_dev_bf16.safetensors
 vae/
-└── flux2-vae.safetensors
+├── LTX2_video_vae_bf16.safetensors
+└── LTX2_audio_vae_bf16.safetensors
+latent_upscale_models/
+└── ltx-2-spatial-upscaler-x2-1.0.safetensors  (optional)
 ```
 
 The custom worker image contains no model weights. At startup, `docker/link-cached-models.sh` finds the RunPod cached Hugging Face snapshot and symlinks its files into `/comfyui/models/`.
@@ -16,12 +23,12 @@ The custom worker image contains no model weights. At startup, `docker/link-cach
 ## Endpoint configuration
 
 - Container image: `ghcr.io/joseph6377/busy-fermi:latest`
-- Model: `joseph6377/flux-2-klein-9b-consolidated`
+- Model: `joseph6377/ltx-2.3-consolidated`
 - Hugging Face token: a RunPod secret with read access to that repository
 - Environment variable:
 
 ```text
-CACHED_MODEL_ID=joseph6377/flux-2-klein-9b-consolidated
+CACHED_MODEL_ID=joseph6377/ltx-2.3-consolidated
 ```
 
 - Active workers: `0`

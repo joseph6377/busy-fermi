@@ -12,7 +12,7 @@
         <div>
           <p class="eyebrow">LOCAL CONTROL PLANE</p>
           <h1>Comfy RunPod Studio</h1>
-          <p>Generate high-quality images via cloud GPU using consolidated model caching.</p>
+          <p>Generate high-quality video & audio via cloud GPU using consolidated model caching.</p>
         </div>
         <span id="mode" class="pill">Checking connection…</span>
       </header>
@@ -23,16 +23,15 @@
           <article>
             <h2>1. Choose Preset</h2>
             <div class="preset-group">
-              <button id="preset-txt2img" class="btn-preset active">Text to Image</button>
-              <button id="preset-img2img" class="btn-preset">Image to Image</button>
-              <button id="preset-inpaint" class="btn-preset">Inpaint / Swap</button>
+              <button id="preset-txt2img" class="btn-preset active">Text to Video</button>
+              <button id="preset-img2img" class="btn-preset">Image to Video</button>
             </div>
             
             <div style="margin-top: 15px;">
               <label>
                 <span>Active Base Model</span>
                 <select id="base-model-select">
-                  <option value="flux2" selected>FLUX.2 Klein 9B (Distilled FP8)</option>
+                  <option value="ltx2" selected>LTX-2.3 Video+Audio (FP8 Distilled)</option>
                 </select>
               </label>
             </div>
@@ -109,7 +108,7 @@
               </div>
             </div>
 
-            <button id="generate" class="btn-generate" disabled>Generate Image</button>
+            <button id="generate" class="btn-generate" disabled>Generate Video</button>
           </article>
         </section>
 
