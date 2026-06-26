@@ -14,13 +14,13 @@
   "6": {
     "class_type": "UmeAiRT_Positive_Input",
     "inputs": {
-      "text": "A pale-skinned woman with long, flowing white hair and a piercing eye, wearing a dark, elaborate coat and stained cravat, grasps an intricately detailed sword, standing against a dark gradient background, partially shadowed by a wide-brimmed hat, with warm, golden light from the left and faint cool-blue backlight, shot at 45 degrees with shallow depth of field, subtle film grain, and muted color grading, evoking mystery and intensity. The painting is in the style of umesky."
+      "positive": "A pale-skinned woman with long, flowing white hair and a piercing eye, wearing a dark, elaborate coat and stained cravat, grasps an intricately detailed sword, standing against a dark gradient background, partially shadowed by a wide-brimmed hat, with warm, golden light from the left and faint cool-blue backlight, shot at 45 degrees with shallow depth of field, subtle film grain, and muted color grading, evoking mystery and intensity. The painting is in the style of umesky."
     }
   },
   "9": {
     "class_type": "UmeAiRT_PipelineImageSaver",
     "inputs": {
-      "filename_prefix": "FLUX/%date/%time_%seed",
+      "filename": "FLUX/%date/%time_%seed",
       "gen_pipe": [
         "37",
         0
