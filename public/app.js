@@ -6,6 +6,12 @@ let startTime = null;
 let loraUrls = [];
 let activePreset = "txt2img";
 
+const maskCanvas = document.createElement("canvas");
+const maskCtx = maskCanvas.getContext("2d");
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+
 const $ = (selector) => document.querySelector(selector);
 
 const message = (text, error = false) => {
@@ -88,13 +94,21 @@ async function loadPreset() {
     const model = $("#base-model-select").value;
     let url = "";
     if (model === "flux2") {
-      url = activePreset === "txt2img"
-        ? "/samples/flux2-klein-9b-text-to-image-api.json"
-        : "/samples/flux2-klein-9b-image-to-image-api.json";
+      if (activePreset === "txt2img") {
+        url = "/samples/flux2-klein-9b-text-to-image-api.json";
+      } else if (activePreset === "img2img") {
+        url = "/samples/flux2-klein-9b-image-to-image-api.json";
+      } else if (activePreset === "inpaint") {
+        url = "/samples/flux2-klein-9b-inpaint-api.json";
+      }
     } else {
-      url = activePreset === "txt2img"
-        ? "/samples/flux1-dev-text-to-image-api.json"
-        : "/samples/flux1-dev-image-to-image-api.json";
+      if (activePreset === "txt2img") {
+        url = "/samples/flux1-dev-text-to-image-api.json";
+      } else if (activePreset === "img2img") {
+        url = "/samples/flux1-dev-image-to-image-api.json";
+      } else if (activePreset === "inpaint") {
+        url = "/samples/flux1-dev-image-to-image-api.json";
+      }
     }
       
     const response = await fetch(url);
@@ -110,9 +124,11 @@ async function loadPreset() {
     
     $("#workflow-summary").textContent = `${result.nodeCount} nodes · ${result.fields.length} editable fields · ${result.models.length} model references`;
     
-    // Show/hide image upload group
+    // Show/hide image and mask upload groups
     const hasLoadImage = workflow && Object.values(workflow).some((node) => node.class_type === "LoadImage");
-    $("#img2img-upload-group").style.display = hasLoadImage ? "block" : "none";
+    const hasLoadImageMask = workflow && Object.values(workflow).some((node) => node.class_type === "LoadImageMask");
+    $("#img2img-upload-group").style.display = (hasLoadImage || hasLoadImageMask) ? "block" : "none";
+    $("#mask-upload-subgroup").style.display = hasLoadImageMask ? "block" : "none";
     
     // Render editable fields
     renderWorkflowFields(result.fields);
@@ -130,6 +146,7 @@ async function loadPreset() {
 $("#preset-txt2img").addEventListener("click", () => {
   $("#preset-txt2img").classList.add("active");
   $("#preset-img2img").classList.remove("active");
+  $("#preset-inpaint").classList.remove("active");
   activePreset = "txt2img";
   loadPreset();
 });
@@ -137,7 +154,16 @@ $("#preset-txt2img").addEventListener("click", () => {
 $("#preset-img2img").addEventListener("click", () => {
   $("#preset-img2img").classList.add("active");
   $("#preset-txt2img").classList.remove("active");
+  $("#preset-inpaint").classList.remove("active");
   activePreset = "img2img";
+  loadPreset();
+});
+
+$("#preset-inpaint").addEventListener("click", () => {
+  $("#preset-inpaint").classList.add("active");
+  $("#preset-txt2img").classList.remove("active");
+  $("#preset-img2img").classList.remove("active");
+  activePreset = "inpaint";
   loadPreset();
 });
 
@@ -155,6 +181,7 @@ $("#workflow-file").addEventListener("change", async (event) => {
     // Clear active preset classes
     $("#preset-txt2img").classList.remove("active");
     $("#preset-img2img").classList.remove("active");
+    $("#preset-inpaint").classList.remove("active");
     
     const result = await api("/api/workflows/inspect", {
       method: "POST", body: JSON.stringify({ workflow })
@@ -162,9 +189,11 @@ $("#workflow-file").addEventListener("change", async (event) => {
     
     $("#workflow-summary").textContent = `${result.nodeCount} nodes · ${result.fields.length} editable fields · ${result.models.length} model references`;
     
-    // Show/hide image upload group
+    // Show/hide image and mask upload groups
     const hasLoadImage = workflow && Object.values(workflow).some((node) => node.class_type === "LoadImage");
-    $("#img2img-upload-group").style.display = hasLoadImage ? "block" : "none";
+    const hasLoadImageMask = workflow && Object.values(workflow).some((node) => node.class_type === "LoadImageMask");
+    $("#img2img-upload-group").style.display = (hasLoadImage || hasLoadImageMask) ? "block" : "none";
+    $("#mask-upload-subgroup").style.display = hasLoadImageMask ? "block" : "none";
     
     // Render editable fields
     renderWorkflowFields(result.fields);
@@ -333,6 +362,44 @@ $("#generate").addEventListener("click", async () => {
       }
     }
     
+    const maskFile = $("#input-mask-file") ? $("#input-mask-file").files[0] : null;
+    const hasLoadImageMask = workflow && Object.values(workflow).some((node) => node.class_type === "LoadImageMask");
+    if (maskFile) {
+      const base64 = await readImageAsBase64(maskFile);
+      const filename = maskFile.name || "mask_image.png";
+      images.push({
+        name: filename,
+        image: base64
+      });
+      
+      // Update any LoadImageMask nodes in the workflow to match this filename
+      if (workflow) {
+        for (const nodeId in workflow) {
+          if (workflow[nodeId].class_type === "LoadImageMask") {
+            workflow[nodeId].inputs = workflow[nodeId].inputs || {};
+            workflow[nodeId].inputs.image = filename;
+          }
+        }
+      }
+    } else if (hasLoadImageMask) {
+      // Extract the drawn mask from the canvas
+      const maskBase64 = maskCanvas.toDataURL("image/png");
+      images.push({
+        name: "mask_image.png",
+        image: maskBase64
+      });
+      
+      // Update any LoadImageMask nodes in the workflow to match this filename
+      if (workflow) {
+        for (const nodeId in workflow) {
+          if (workflow[nodeId].class_type === "LoadImageMask") {
+            workflow[nodeId].inputs = workflow[nodeId].inputs || {};
+            workflow[nodeId].inputs.image = "mask_image.png";
+          }
+        }
+      }
+    }
+    
     // Read and update editable text/number inputs
     if (workflow) {
       document.querySelectorAll(".field-input").forEach((input) => {
@@ -478,6 +545,118 @@ $("#accordion-toggle").addEventListener("click", () => {
     content.style.maxHeight = `${content.scrollHeight}px`;
   } else {
     content.style.maxHeight = "0px";
+  }
+});
+
+// Painter Brush and Canvas logic
+function clearMask() {
+  const canvas = $("#painter-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  maskCtx.fillStyle = "#000000";
+  maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+}
+
+function getCoords(event) {
+  const canvas = $("#painter-canvas");
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+    y: ((event.clientY - rect.top) / rect.height) * canvas.height
+  };
+}
+
+function startDrawing(e) {
+  isDrawing = true;
+  const coords = getCoords(e);
+  lastX = coords.x;
+  lastY = coords.y;
+  draw(e);
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  const canvas = $("#painter-canvas");
+  const coords = getCoords(e);
+  const x = coords.x;
+  const y = coords.y;
+  
+  const brushSize = parseInt($("#brush-size-slider").value);
+  
+  // Draw on visible canvas
+  const ctx = canvas.getContext("2d");
+  ctx.strokeStyle = "rgba(255, 0, 0, 0.4)";
+  ctx.lineWidth = brushSize;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  
+  // Draw on hidden mask canvas
+  maskCtx.strokeStyle = "#ffffff";
+  maskCtx.lineWidth = brushSize;
+  maskCtx.lineCap = "round";
+  maskCtx.lineJoin = "round";
+  maskCtx.beginPath();
+  maskCtx.moveTo(lastX, lastY);
+  maskCtx.lineTo(x, y);
+  maskCtx.stroke();
+  
+  lastX = x;
+  lastY = y;
+}
+
+function stopDrawing() {
+  isDrawing = false;
+}
+
+// Add Drawing Event Listeners
+const painterCanvas = $("#painter-canvas");
+painterCanvas.addEventListener("pointerdown", startDrawing);
+painterCanvas.addEventListener("pointermove", draw);
+window.addEventListener("pointerup", stopDrawing);
+
+$("#btn-clear-mask").addEventListener("click", clearMask);
+
+$("#brush-size-slider").addEventListener("input", (e) => {
+  $("#brush-size-val").textContent = `${e.target.value}px`;
+});
+
+// Image loading and canvas mapping
+$("#input-image-file").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) {
+    $("#mask-paint-container").style.display = "none";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = $("#painter-img");
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+$("#painter-img").addEventListener("load", () => {
+  const img = $("#painter-img");
+  const canvas = $("#painter-canvas");
+  
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  
+  maskCanvas.width = img.naturalWidth;
+  maskCanvas.height = img.naturalHeight;
+  
+  clearMask();
+  
+  const hasLoadImageMask = workflow && Object.values(workflow).some((node) => node.class_type === "LoadImageMask");
+  if (hasLoadImageMask) {
+    $("#mask-paint-container").style.display = "block";
+    updateAccordionHeight();
   }
 });
 

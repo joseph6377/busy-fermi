@@ -37,3 +37,21 @@ test("enforces generation limits", () => {
 test("rejects editor-format workflows", () => {
   assert.throws(() => validateWorkflow({ nodes: [] }), /Export \(API\)/);
 });
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+test("verifies all sample JSON workflows are valid", () => {
+  const samplesDir = path.join(__dirname, "../samples");
+  const files = fs.readdirSync(samplesDir);
+  for (const file of files) {
+    if (!file.endsWith(".json")) continue;
+    const filePath = path.join(samplesDir, file);
+    const content = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    assert.ok(validateWorkflow(content), `Failed to validate sample: ${file}`);
+  }
+});
+

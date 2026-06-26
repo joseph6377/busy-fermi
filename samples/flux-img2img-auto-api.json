@@ -1,0 +1,114 @@
+{
+  "5": {
+    "class_type": "UmeAiRT_GenerationSettings",
+    "inputs": {
+      "width": 896,
+      "height": 1152,
+      "steps": 30,
+      "cfg": 3.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "seed": 1111885513078954
+    }
+  },
+  "6": {
+    "class_type": "UmeAiRT_Positive_Input",
+    "inputs": {
+      "text": "A pale-skinned woman with long, flowing white hair and a piercing eye, wearing a dark, elaborate coat and stained cravat, grasps an intricately detailed sword, standing against a dark gradient background, partially shadowed by a wide-brimmed hat, with warm, golden light from the left and faint cool-blue backlight, shot at 45 degrees with shallow depth of field, subtle film grain, and muted color grading, evoking mystery and intensity. The painting is in the style of umesky."
+    }
+  },
+  "9": {
+    "class_type": "UmeAiRT_PipelineImageSaver",
+    "inputs": {
+      "filename_prefix": "FLUX/%date/%time_%seed",
+      "gen_pipe": [
+        "37",
+        0
+      ]
+    }
+  },
+  "12": {
+    "class_type": "UmeAiRT_LoraBlock_3",
+    "inputs": {
+      "lora_1_on": false,
+      "lora_1_name": "None",
+      "lora_1_strength": 1,
+      "lora_2_on": false,
+      "lora_2_name": "None",
+      "lora_2_strength": 1,
+      "lora_3_on": false,
+      "lora_3_name": "None",
+      "lora_3_strength": 1
+    }
+  },
+  "33": {
+    "class_type": "UmeAiRT_BlockSampler",
+    "inputs": {
+      "model_bundle": [
+        "35",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "settings": [
+        "5",
+        0
+      ],
+      "loras": [
+        "12",
+        0
+      ],
+      "images": [
+        "38",
+        0
+      ]
+    }
+  },
+  "35": {
+    "class_type": "UmeAiRT_BundleLoader",
+    "inputs": {
+      "category": "FLUX/Dev",
+      "version": "fp8"
+    }
+  },
+  "37": {
+    "class_type": "UmeAiRT_PipelineSeedVR2Upscale",
+    "inputs": {
+      "enabled": false,
+      "model": "seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors",
+      "upscale_by": 2,
+      "tile_width": 512,
+      "tile_height": 512,
+      "mask_blur": 0,
+      "tile_padding": 32,
+      "tile_upscale_resolution": 1024,
+      "tiling_strategy": "Chess",
+      "anti_aliasing_strength": 0,
+      "blending_method": "auto",
+      "color_correction": "lab",
+      "gen_pipe": [
+        "33",
+        0
+      ]
+    }
+  },
+  "38": {
+    "class_type": "UmeAiRT_ImageProcess_Img2Img",
+    "inputs": {
+      "denoise": 0.8,
+      "auto_resize": true,
+      "image_bundle": [
+        "39",
+        0
+      ]
+    }
+  },
+  "39": {
+    "class_type": "UmeAiRT_BlockImageLoader",
+    "inputs": {
+      "image": "9c5eac79-02b1-4799-a754-c9e8d2ab7a8e.jpeg"
+    }
+  }
+}

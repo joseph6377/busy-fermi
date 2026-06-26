@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.git/
+.vscode/
+.idea/
+*.egg-info/
+dist/
+build/
+
+error_dump.txt
+*.bak
+
+# Coverage
+.coverage
+htmlcov/
+*.log

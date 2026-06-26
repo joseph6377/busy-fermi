@@ -1,0 +1,145 @@
+# ============================================================================
+# GitLab CI — ComfyUI-UmeAiRT-Toolkit
+# Replaces: .github/workflows/ci.yml, docs.yml
+# ============================================================================
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+
+stages:
+  - test
+  - release
+  - docs
+  - mirror
+
+default:
+  cache:
+    key: pip-${CI_JOB_IMAGE}
+    paths:
+      - .pip-cache/
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  PIP_EXTRA_INDEX_URL: "https://download.pytorch.org/whl/cpu"
+workflow:
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /\[skip ci\]/
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG
+
+# ── Lint ────────────────────────────────────────────────────────
+lint:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - pip install ruff
+    - ruff check modules/ __init__.py
+
+# ── Tests (matrix Python 3.10-3.13) ────────────────────────────
+test:
+  stage: test
+  image: python:${PYTHON_VERSION}-slim
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ["3.10", "3.11", "3.12", "3.13"]
+  before_script:
+    - pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    - pip install ruff pytest numpy Pillow requests
+  script:
+    - python run_tests.py
+
+# ── Integration Tests (real ComfyUI container + GPU) ───────────
+test-comfyui:
+  stage: test
+  tags:
+    - gpu
+    - docker
+  image:
+    name: registry.gitlab.com/umeairt-studio/comfyui-auto_installer-python:latest
+    entrypoint: [""]
+  allow_failure: false
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+  variables:
+    TEST_MODEL_URL: "https://huggingface.co/UmeAiRT/ComfyUI-Auto-Installer-Assets/resolve/main/models/checkpoints/Illustrious/illustriousXL_v01.safetensors"
+    TEST_MODEL_NAME: "illustriousXL_v01.safetensors"
+  before_script:
+    - if [ -f /app/scripts/venv.tar.zst ]; then mkdir -p /data && tar -xf /app/scripts/venv.tar.zst --zstd -C /data && ln -sfn /data/venv /app/scripts/venv; fi
+    - . /app/scripts/venv/bin/activate
+    - mkdir -p /app/ComfyUI/custom_nodes
+    - ln -s $CI_PROJECT_DIR /app/ComfyUI/custom_nodes/ComfyUI-UmeAiRT-Toolkit
+    - pip install pytest
+    - pip install torchaudio==2.10.0 --index-url https://download.pytorch.org/whl/cu130 2>/dev/null || true
+    - pip install -r requirements.txt 2>/dev/null || true
+    # Phase 3: Download test checkpoint for end-to-end sampling tests (fresh each run)
+    - mkdir -p /app/ComfyUI/models/checkpoints
+    - >-
+      python -c "import urllib.request, os; urllib.request.urlretrieve(os.environ['TEST_MODEL_URL'], '/app/ComfyUI/models/checkpoints/' + os.environ['TEST_MODEL_NAME']); print('Model downloaded:', os.environ['TEST_MODEL_NAME'])"
+      || echo "WARNING: Model download failed — Phase 3 tests will be skipped"
+  script:
+    - cd $CI_PROJECT_DIR
+    - python -c "import torch; print('CUDA:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
+    - PYTHONPATH=/app/ComfyUI:$PYTHONPATH TEST_MODEL_NAME=$TEST_MODEL_NAME python -m pytest tests/test_comfyui_runtime.py -v --tb=short --import-mode=importlib -c /dev/null -p no:cacheprovider
+
+# ── MkDocs → GitLab Pages ──────────────────────────────────────
+pages:
+  stage: docs
+  image: python:3.12-slim
+  script:
+    - pip install "mkdocs>=1.6,<2.0" "mkdocs-material>=9.5"
+    - mkdocs build --strict --site-dir public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ═══════════════════════════════════════════════════════════════
+# STAGE: release (tags only)
+# ═══════════════════════════════════════════════════════════════
+
+# ── Create GitLab Release ────────────────────────────────────
+gitlab-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs: ["lint", "test"]
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/
+  script:
+    - echo "Creating release for $CI_COMMIT_TAG"
+    - release-cli create --name "$CI_COMMIT_TAG" --tag-name "$CI_COMMIT_TAG" --description "Release $CI_COMMIT_TAG — see CHANGELOG.md for details."
+
+# ── Publish to Comfy Registry ────────────────────────────────
+publish-registry:
+  stage: release
+  image: python:3.12-slim
+  needs: ["lint", "test"]
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq git > /dev/null 2>&1
+    - pip install comfy-cli
+  script:
+    - echo "n" | comfy tracking disable
+    - comfy node publish --token $REGISTRY_ACCESS_TOKEN
+
+# ── Mirror → Codeberg ──────────────────────────────────────────
+mirror-codeberg:
+  stage: mirror
+  image: alpine:latest
+  allow_failure: true
+  before_script:
+    - apk add --no-cache git
+  script:
+    - REMOTE="https://oauth2:$CODEBERG_TOKEN@codeberg.org/UmeAiRT/ComfyUI-UmeAiRT-Toolkit.git"
+    - git push --all --force "$REMOTE"
+    - git push --tags --force "$REMOTE"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG

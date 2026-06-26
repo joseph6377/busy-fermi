@@ -25,6 +25,7 @@
             <div class="preset-group">
               <button id="preset-txt2img" class="btn-preset active">Text to Image</button>
               <button id="preset-img2img" class="btn-preset">Image to Image</button>
+              <button id="preset-inpaint" class="btn-preset">Inpaint / Swap</button>
             </div>
             
             <div style="margin-top: 15px;">
@@ -46,6 +47,32 @@
                 <span>Input Image (Source)</span>
                 <input id="input-image-file" type="file" accept="image/*">
               </label>
+
+              <!-- Interactive Brush Mask Canvas -->
+              <div id="mask-paint-container" style="display: none; margin-top: 16px;">
+                <span style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.85rem;">Inpaint Mask (Brush directly on the image)</span>
+                
+                <div class="painter-wrapper" style="position: relative; display: inline-block; max-width: 100%; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: #000; line-height: 0;">
+                  <img id="painter-img" style="max-width: 100%; display: block; opacity: 1; pointer-events: none;" alt="Inpaint source background">
+                  <canvas id="painter-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none;"></canvas>
+                </div>
+                
+                <div class="painter-controls" style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; gap: 16px;">
+                  <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <span style="font-size: 0.75rem; color: var(--color-text-muted); white-space: nowrap;">Brush Size:</span>
+                    <input id="brush-size-slider" type="range" min="5" max="100" value="25" style="width: 100%; height: 6px; padding: 0; background: var(--bg-input); border-radius: 3px; cursor: pointer;">
+                    <span id="brush-size-val" style="font-size: 0.75rem; color: var(--color-text-bright); min-width: 28px; text-align: right;">25px</span>
+                  </div>
+                  <button id="btn-clear-mask" type="button" style="width: auto; padding: 8px 12px; font-size: 0.75rem; background: #3a1d28; color: #ffb6c8; border-radius: 6px; border: 0; cursor: pointer; font-weight: 600;">Clear Mask</button>
+                </div>
+              </div>
+
+              <div id="mask-upload-subgroup" style="margin-top: 12px; display: none;">
+                <label>
+                  <span>Or Upload Mask File (White = area to change)</span>
+                  <input id="input-mask-file" type="file" accept="image/*">
+                </label>
+              </div>
             </div>
 
             <div id="fields"></div>

@@ -1,0 +1,349 @@
+/* ==========================================================================
+   UmeAiRT Hardware Monitor — 3 Switchable Styles
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base layout (shared across all styles)
+   -------------------------------------------------------------------------- */
+
+#umeairt-monitor-root {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    align-self: center;
+    gap: 4px;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+    flex-shrink: 1;
+}
+
+.umeairt-monitor__item {
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    transition: opacity 0.3s ease, transform 0.15s ease;
+    min-width: 0;
+}
+
+.umeairt-monitor__item:hover {
+    transform: translateY(-1px);
+}
+
+.umeairt-monitor__item[data-hidden="true"] {
+    display: none;
+}
+
+.umeairt-monitor__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--metric-color);
+    flex-shrink: 0;
+}
+
+.umeairt-monitor__label {
+    font-size: 10px;
+    font-weight: 400;
+    color: #8a8f9c;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.umeairt-monitor__value {
+    font-size: 11px;
+    font-weight: 600;
+    color: #e0e0e8;
+    white-space: nowrap;
+    line-height: 1;
+    min-width: 28px;
+    text-align: right;
+}
+
+.umeairt-monitor__bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.umeairt-monitor__fill {
+    height: 100%;
+    width: 0%;
+    background: var(--metric-color);
+    transition: width 1s ease-out;
+    will-change: width;
+}
+
+/* Temperature gradient fill */
+.umeairt-monitor__fill[data-metric="temp"] {
+    transition: width 1s ease-out, background-color 1s ease-out;
+}
+
+/* Separator between GPU groups */
+.umeairt-monitor__sep {
+    width: 1px;
+    height: 18px;
+    background: #3a3f4c;
+    flex-shrink: 0;
+    margin: 0 2px;
+}
+
+/* Progress bar — hidden when idle */
+.umeairt-monitor__progress {
+    display: none;
+}
+
+.umeairt-monitor__progress[data-active="true"] {
+    display: flex;
+    animation: umeairt-fadein 0.3s ease-out;
+}
+
+/* --------------------------------------------------------------------------
+   Warning / Critical states
+   -------------------------------------------------------------------------- */
+
+.umeairt-monitor__item[data-state="warning"] .umeairt-monitor__fill {
+    animation: umeairt-pulse-fill 2s ease-in-out infinite;
+}
+
+.umeairt-monitor__item[data-state="critical"] .umeairt-monitor__fill {
+    background: #E74C3C !important;
+}
+
+@keyframes umeairt-pulse-fill {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes umeairt-fadein {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* --------------------------------------------------------------------------
+   Tooltip
+   -------------------------------------------------------------------------- */
+
+.umeairt-monitor__tooltip {
+    position: fixed;
+    z-index: 99999;
+    background: rgba(15, 15, 22, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid #4a5d8c;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #e0e0e8;
+    line-height: 1.5;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    animation: umeairt-tooltip-in 0.15s ease-out;
+}
+
+.umeairt-monitor__tooltip-title {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.umeairt-monitor__tooltip-row {
+    color: #a0a4b0;
+}
+
+.umeairt-monitor__tooltip-row span {
+    color: #e0e0e8;
+    font-weight: 500;
+}
+
+.umeairt-monitor__tooltip-hint {
+    color: #6a6e7a;
+    font-size: 10px;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+@keyframes umeairt-tooltip-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ==========================================================================
+   STYLE 1: Glassmorphism Pills (default)
+   ========================================================================== */
+
+.umeairt-monitor--glassmorphism .umeairt-monitor__item {
+    background: rgba(21, 21, 27, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid #4a5d8c;
+    border-radius: 4px;
+    padding: 3px 8px 5px 6px;
+    gap: 5px;
+}
+
+.umeairt-monitor--glassmorphism .umeairt-monitor__item:hover {
+    border-color: #6b7fac;
+    background: rgba(25, 25, 35, 0.92);
+}
+
+.umeairt-monitor--glassmorphism .umeairt-monitor__item[data-state="critical"] {
+    border-color: #E74C3C;
+    box-shadow: 0 0 6px rgba(231, 76, 60, 0.25);
+}
+
+.umeairt-monitor--glassmorphism .umeairt-monitor__bar {
+    border-radius: 0 0 3px 3px;
+}
+
+.umeairt-monitor--glassmorphism .umeairt-monitor__fill {
+    border-radius: 0 0 3px 3px;
+}
+
+
+/* ==========================================================================
+   STYLE 2: Accent Strip
+   ========================================================================== */
+
+.umeairt-monitor--strip .umeairt-monitor__item {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 2px 6px 5px 4px;
+    gap: 4px;
+    position: relative;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__dot {
+    display: none;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__label {
+    color: var(--metric-color);
+    font-weight: 500;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__value {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__bar {
+    height: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 1px;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__fill {
+    border-radius: 1px;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__item:hover {
+    transform: none;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__item:hover .umeairt-monitor__value {
+    color: #ffffff;
+}
+
+.umeairt-monitor--strip .umeairt-monitor__item[data-state="critical"] .umeairt-monitor__label {
+    color: #E74C3C;
+}
+
+
+/* ==========================================================================
+   STYLE 3: Micro Gauges
+   ========================================================================== */
+
+.umeairt-monitor--gauges .umeairt-monitor__item {
+    background: #15151b;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    padding: 0;
+    min-width: 54px;
+    height: 28px;
+    position: relative;
+    overflow: hidden;
+    gap: 0;
+}
+
+/* Progress pill needs more room for labels like 'Generating', 'Upscaling T2' */
+.umeairt-monitor--gauges .umeairt-monitor__progress {
+    min-width: 80px;
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__dot {
+    display: none;
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: transparent;
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__fill {
+    height: 100%;
+    opacity: 0.35;
+    box-shadow: inset -1px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__label {
+    position: absolute;
+    left: 5px;
+    bottom: 2px;
+    font-size: 8px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    z-index: 2;
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__value {
+    position: absolute;
+    right: 5px;
+    top: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    z-index: 2;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__item:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: none;
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__item:hover .umeairt-monitor__fill {
+    opacity: 0.5;
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__item[data-state="critical"] {
+    border-color: rgba(231, 76, 60, 0.5);
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__item[data-state="critical"] .umeairt-monitor__fill {
+    opacity: 0.5;
+}
+
+.umeairt-monitor--gauges .umeairt-monitor__sep {
+    height: 22px;
+}

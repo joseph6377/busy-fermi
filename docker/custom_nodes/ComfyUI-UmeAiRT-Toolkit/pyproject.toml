@@ -1,0 +1,102 @@
+[project]
+name = "comfyui-umeairt-toolkit"
+version = "1.12.9"
+description = "Comprehensive node suite for local AI video/image generation with UmeAiRT"
+readme = "README.md"
+authors = [
+    { name = "UmeAiRT Team", email = "contact@umeairt.com" }
+]
+license = { file = "LICENSE" }
+dependencies = [
+    "colorama",
+    "opencv-python",
+    "tqdm",
+    "scipy",
+    "psutil",
+    "safetensors",
+    "pynvml; sys_platform == 'win32' or (sys_platform == 'linux' and platform_machine != 'aarch64')",
+    "requests>=2.33.1",
+]
+requires-python = ">=3.10"
+keywords = ["comfyui", "stable-diffusion", "pipeline", "workflow", "ai"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Environment :: GPU :: NVIDIA CUDA",
+]
+
+[project.optional-dependencies]
+monitoring-nvidia = ["pynvml"]
+monitoring-amd = ["pyamdgpuinfo; sys_platform == 'linux'"]
+seedvr2 = [
+    "diffusers>=0.33.1",
+    "peft>=0.17.0",
+    "rotary_embedding_torch>=0.5.3",
+    "einops",
+    "omegaconf>=2.3.0"
+]
+facedetailer = ["ultralytics>=8.0.0"]
+gguf = ["gguf"]
+vision = [
+    "transformers>=4.38.0",
+    "tokenizers"
+]
+all = [
+    "diffusers>=0.33.1",
+    "peft>=0.17.0",
+    "rotary_embedding_torch>=0.5.3",
+    "einops",
+    "omegaconf>=2.3.0",
+    "ultralytics>=8.0.0",
+    "gguf",
+    "transformers>=4.38.0",
+    "tokenizers",
+    "pynvml"
+]
+
+[project.urls]
+Homepage = "https://gitlab.com/UmeAiRT-Studio/ComfyUI-UmeAiRT-Toolkit"
+Repository = "https://gitlab.com/UmeAiRT-Studio/ComfyUI-UmeAiRT-Toolkit.git"
+
+[tool.comfy]
+PublisherId = "umeairt"
+DisplayName = "UmeAiRT Toolkit"
+Icon = "https://gitlab.com/UmeAiRT-Studio/ComfyUI-UmeAiRT-Toolkit/-/raw/main/gitlab-avatar.png"
+requires-comfyui = ">=0.3.7"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+norecursedirs = ["modules", "vendor", "usdu_core", "facedetailer_core", "seedvr2_core", "web", "assets", ".git"]
+collect_ignore_glob = ["*/__init__.py", "__init__.py"]
+
+[tool.bandit]
+# B101 = assert usage (fine in non-production code)
+# B310 = urlopen audit (legitimate — we download models)
+# B614 = torch.load (vendored preprocessor networks use safe state_dict loading)
+# B615 = HF from_pretrained (local_files_only=True in our code, vendored in networks/)
+skips = ["B101", "B310", "B614", "B615"]
+exclude_dirs = ["vendor", "usdu_core", "facedetailer_core", "seedvr2_core", "tests", "modules/preprocessors/networks"]
+
+[tool.ruff]
+exclude = [
+    "vendor/",
+    "usdu_core/",
+    "facedetailer_core/",
+    "seedvr2_core/",
+    "image_saver_core/",
+]
+
+[tool.ruff.lint]
+# F = Pyflakes (real bugs: undefined names, redefined, etc.)
+# E9 = Runtime/syntax errors
+select = ["F", "E9"]
+# F401 = unused-import: too many false positives in ComfyUI custom nodes
+#   (imports used in INPUT_TYPES class methods, __init__.py re-exports, etc.)
+ignore = ["F401"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
